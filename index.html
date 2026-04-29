@@ -4,12 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NutriNest</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-body { background: linear-gradient(135deg,#ffecd2,#fcb69f); }
-.card:hover { transform: scale(1.05); transition: 0.3s; }
-.big { font-size: 40px; }
+body {
+  background: linear-gradient(135deg,#ffecd2,#fcb69f);
+}
+.card:hover {
+  transform: scale(1.05);
+  transition: 0.3s;
+}
 </style>
 </head>
 
@@ -31,7 +36,6 @@ body { background: linear-gradient(135deg,#ffecd2,#fcb69f); }
 <!-- PROFILE -->
 <div class="bg-white p-4 rounded shadow">
 <h3 class="font-bold mb-2">👶 Child Profile</h3>
-
 <input id="age" class="border p-2 w-full mb-2" placeholder="Age">
 
 <select id="goal" class="border p-2 w-full mb-2">
@@ -40,41 +44,50 @@ body { background: linear-gradient(135deg,#ffecd2,#fcb69f); }
 <option value="lowSugar">Low Sugar</option>
 </select>
 
-<button onclick="saveProfile()" class="bg-blue-500 text-white px-3 py-2 rounded w-full">
+<button onclick="saveProfile()" class="bg-blue-500 text-white p-2 rounded w-full">
 Save Profile
 </button>
-
 <p id="profileMsg" class="text-green-600 mt-2"></p>
 </div>
 
-<!-- FOOD -->
+<!-- FOOD ANALYZER -->
 <div class="bg-white p-4 rounded shadow">
-<h3 class="font-bold mb-2">🍽 Food Analyzer</h3>
-<input id="foodInput" class="border p-2 w-full mb-2" placeholder="Enter food">
-<button onclick="analyzeFood()" class="bg-orange-500 text-white px-3 py-2 rounded w-full">Analyze</button>
+<h3 class="font-bold mb-2">🍔 Smart Food Analyzer</h3>
+
+<input id="foodInput" class="border p-2 w-full mb-2"
+placeholder="e.g. I ate pizza, burger and apple">
+
+<div class="flex gap-2">
+<button onclick="analyzeFood()" class="bg-orange-500 text-white p-2 rounded w-full">Analyze</button>
+<button onclick="startVoice()" class="bg-blue-500 text-white px-3 rounded">🎤</button>
+<button onclick="scanDemo()" class="bg-green-500 text-white px-3 rounded">📷</button>
+</div>
+
 <p id="result" class="mt-2 font-bold"></p>
 </div>
 
-<!-- MEAL -->
+<!-- MEAL PLANNER -->
 <div class="bg-white p-4 rounded shadow">
-<h3 class="font-bold mb-2">📅 Smart Meal Plan</h3>
-<button onclick="generateMealPlan()" class="bg-green-500 text-white px-3 py-2 rounded w-full mb-2">
+<h3 class="font-bold mb-2">🍱 Smart Weekly Meal Plan</h3>
+<button onclick="generateMealPlan()" class="bg-green-500 text-white p-2 rounded w-full mb-2">
 Generate Plan
 </button>
 <div id="mealPlan"></div>
 </div>
 
 <!-- REWARDS -->
-<div class="bg-white p-4 rounded shadow">
-<h3 class="font-bold mb-2">🎮 Rewards</h3>
+<div class="bg-white p-4 rounded shadow text-center">
+<h3 class="font-bold mb-2">🎮 Rewards Store</h3>
 <p>⭐ Points: <span id="points">0</span></p>
-<div id="coupons"></div>
-<p id="rewardMsg" class="text-green-600"></p>
+<div id="coupons" class="mt-2"></div>
+<p id="rewardMsg" class="text-green-600 mt-2"></p>
 </div>
 
 </div>
 
 <script>
+
+// SCORE + POINTS
 let score = 75;
 let points = Number(localStorage.getItem("points")) || 0;
 document.getElementById("points").innerText = points;
@@ -84,62 +97,128 @@ function saveProfile(){
   let age = document.getElementById("age").value;
   let goal = document.getElementById("goal").value;
   localStorage.setItem("profile", JSON.stringify({age, goal}));
-  document.getElementById("profileMsg").innerText = "Saved ✅";
+  document.getElementById("profileMsg").innerText="Saved ✅";
 }
 
-// FOOD ANALYZER
-const junk = ["pizza","burger","chips","cola","cake","chocolate"];
-const healthy = ["apple","banana","milk","egg","dal","roti","rice"];
+// 🔥 LARGE FOOD DATABASE
+const junkFoods = [
+"pizza","burger","cheeseburger","double burger","fries","french fries",
+"loaded fries","chips","nachos","hot dog","shawarma","rolls",
+"fried chicken","chicken wings","chicken nuggets",
+"kurkure","lays","chips packet","oreo","kitkat","snickers",
+"dairy milk","perk","5 star","munch","cream biscuits","biscuits",
+"coke","pepsi","sprite","fanta","soft drink","energy drink",
+"red bull","sting","cola","milkshake","chocolate shake",
+"cake","pastry","cupcake","brownie","donut","waffles",
+"ice cream","kulfi","jalebi","gulab jamun","rasgulla",
+"laddu","kaju katli","halwa",
+"maggi","instant noodles","ramen","frozen food",
+"processed cheese","white bread","butter naan"
+];
 
+const healthyFoods = [
+"apple","banana","orange","grapes","mango","papaya",
+"watermelon","pomegranate","guava","pear","kiwi","strawberry",
+"carrot","broccoli","spinach","cabbage","cauliflower",
+"beans","peas","tomato","cucumber","beetroot","pumpkin","capsicum",
+"dal","rice","brown rice","roti","chapati","idli","dosa",
+"upma","poha","khichdi",
+"egg","boiled egg","omelette","paneer","tofu",
+"grilled chicken","boiled chicken","fish","grilled fish",
+"milk","curd","yogurt","buttermilk",
+"nuts","almonds","walnuts","cashews","oats","porridge",
+"salad","vegetable soup","dal soup","sprouts",
+"coconut water","fruit bowl","dry fruits"
+];
+
+const moderateFoods = [
+"biryani","veg biryani","chicken biryani","pulao",
+"rajma chawal","chole bhature","paneer butter masala",
+"butter chicken","dal makhani",
+"paratha","aloo paratha","paneer paratha",
+"sandwich","cheese sandwich",
+"pasta","mac and cheese","noodles","fried rice",
+"omelette","egg curry","chapati with sabzi"
+];
+
+// 🧠 ANALYZER
 function analyzeFood(){
-  let food = document.getElementById("foodInput").value.toLowerCase();
+  let input = document.getElementById("foodInput").value.toLowerCase();
+  let result = document.getElementById("result");
 
-  if(junk.includes(food)){
-    score -= 10;
-    document.getElementById("result").innerText="❌ Junk Food";
-  } 
-  else if(healthy.includes(food)){
-    score += 5;
-    points += 10;
-    localStorage.setItem("points",points);
-    document.getElementById("result").innerText="✅ Healthy (+10⭐)";
-  } 
-  else {
-    document.getElementById("result").innerText="🤔 Unknown";
+  if(!input){
+    result.innerHTML="⚠️ Enter food first";
+    return;
   }
 
-  document.getElementById("score").innerText=score;
+  let j=0,h=0,m=0;
+
+  junkFoods.forEach(f=>{ if(input.includes(f)) j++; });
+  healthyFoods.forEach(f=>{ if(input.includes(f)) h++; });
+  moderateFoods.forEach(f=>{ if(input.includes(f)) m++; });
+
+  let msg="", suggestion="", emoji="";
+
+  if(j>h && j>m){
+    msg="❌ Junk Heavy Meal";
+    suggestion="👉 Reduce junk & add fruits.";
+    emoji="⚠️";
+    score-=10;
+    addPoints(-5);
+  }
+  else if(h>=j && h>0){
+    msg="✅ Healthy Meal 🎉";
+    suggestion="💪 Great job!";
+    emoji="🌟";
+    score+=5;
+    addPoints(10);
+  }
+  else if(m>0){
+    msg="⚖ Moderate Meal";
+    suggestion="👉 Improve balance.";
+    emoji="👍";
+    addPoints(2);
+  }
+  else{
+    msg="🤔 Not recognized";
+    suggestion="Try simple names.";
+    emoji="❓";
+  }
+
+  result.innerHTML = `
+    ${emoji} ${msg}<br>
+    🍟 ${j} | 🥗 ${h} | ⚖ ${m}<br>
+    ${suggestion}
+  `;
+
+  if(score<0) score=0;
+  if(score>100) score=100;
+
+  document.getElementById("score").innerText = score;
+  flashResult();
+}
+
+// UI EFFECT
+function flashResult(){
+  let box=document.getElementById("result");
+  box.style.transform="scale(1.05)";
+  setTimeout(()=>box.style.transform="scale(1)",200);
+}
+
+// POINT SYSTEM
+function addPoints(val){
+  points += val;
+  if(points<0) points=0;
+
+  localStorage.setItem("points",points);
   document.getElementById("points").innerText=points;
   renderCoupons();
 }
 
-// SMART MEAL PLAN
-function generateMealPlan(){
-  let profile = JSON.parse(localStorage.getItem("profile")) || {};
-  let goal = profile.goal || "balanced";
-
-  let meals = {
-    balanced:["🍛 Rice + Dal","🥞 Dosa","🥣 Oats","🫓 Roti + Paneer"],
-    weight:["🍗 Chicken Rice","🥛 Milkshake","🥞 Paratha"],
-    lowSugar:["🥗 Salad","🍲 Veg Soup","🥒 Cucumber"]
-  };
-
-  let plan = meals[goal];
-
-  let div = document.getElementById("mealPlan");
-  div.innerHTML="";
-
-  ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].forEach(day=>{
-    let item = document.createElement("p");
-    item.innerText = day + " → " + plan[Math.floor(Math.random()*plan.length)];
-    div.appendChild(item);
-  });
-}
-
 // COUPONS
 let coupons = [
-{id:1,name:"🥗 10% Discount",cost:50,used:false},
-{id:2,name:"🍎 Free Fruit",cost:80,used:false}
+{id:1,name:"🥗 10% Healthy Discount",cost:50,used:false},
+{id:2,name:"🍎 Free Fruit Pack",cost:80,used:false}
 ];
 
 function renderCoupons(){
@@ -148,15 +227,15 @@ function renderCoupons(){
 
   coupons.forEach(c=>{
     let btn=document.createElement("button");
-    btn.innerText = c.used ? "Used" : (points>=c.cost ? "Redeem" : "Locked");
+    btn.innerText=c.used?"Used":(points>=c.cost?"Redeem":"Locked");
 
     btn.className="ml-2 px-2 py-1 rounded text-white " + 
-      (c.used ? "bg-gray-400" : (points>=c.cost ? "bg-green-500" : "bg-gray-300"));
+    (c.used?"bg-gray-400":(points>=c.cost?"bg-green-500":"bg-gray-300"));
 
     btn.onclick=()=>redeem(c.id);
 
     let row=document.createElement("div");
-    row.innerText=c.name + " ("+c.cost+"⭐)";
+    row.innerText=c.name+" ("+c.cost+"⭐)";
     row.appendChild(btn);
 
     box.appendChild(row);
@@ -166,21 +245,75 @@ function renderCoupons(){
 function redeem(id){
   let c=coupons.find(x=>x.id===id);
 
-  if(points < c.cost){
+  if(points<c.cost){
     alert("Not enough points");
     return;
   }
 
-  points -= c.cost;
-  c.used = true;
+  points-=c.cost;
+  c.used=true;
 
   localStorage.setItem("points",points);
   document.getElementById("points").innerText=points;
-  document.getElementById("rewardMsg").innerText="🎉 Coupon Redeemed!";
+  document.getElementById("rewardMsg").innerText="🎉 Redeemed!";
   renderCoupons();
 }
 
+// MEAL PLAN
+function generateMealPlan(){
+  let profile = JSON.parse(localStorage.getItem("profile")) || {};
+  let goal = profile.goal || "balanced";
+
+  const meals = {
+    balanced:["🥣 Oats","🍛 Rice + Dal","🫓 Roti + Paneer","🍎 Fruits"],
+    weight:["🥞 Paratha","🍗 Chicken Rice","🥛 Milkshake","🍌 Banana"],
+    lowSugar:["🥗 Salad","🍲 Veg Soup","🥒 Cucumber","🥜 Nuts"]
+  };
+
+  let plan = meals[goal];
+  let div = document.getElementById("mealPlan");
+  div.innerHTML="";
+
+  ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].forEach(day=>{
+    let card=document.createElement("div");
+    card.className="bg-yellow-50 p-2 rounded mt-2 card";
+
+    card.innerHTML=`
+      <b>${day}</b><br>
+      🌅 ${random(plan)}<br>
+      ☀ ${random(plan)}<br>
+      🌙 ${random(plan)}<br>
+      🍎 ${random(plan)}
+    `;
+
+    div.appendChild(card);
+  });
+}
+
+function random(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+// VOICE
+function startVoice(){
+  let rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
+  rec.lang="en-IN";
+  rec.onresult=e=>{
+    document.getElementById("foodInput").value=e.results[0][0].transcript;
+  };
+  rec.start();
+}
+
+// SCAN DEMO
+function scanDemo(){
+  const demo=["pizza","apple","burger","milk","chips"];
+  let f=demo[Math.floor(Math.random()*demo.length)];
+  document.getElementById("foodInput").value=f;
+  analyzeFood();
+}
+
 renderCoupons();
+
 </script>
 
 </body>

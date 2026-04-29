@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriNest</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body { background: linear-gradient(135deg,#ffecd2,#fcb69f); }
+.card:hover { transform: scale(1.05); transition: 0.3s; }
+.big { font-size: 40px; }
+</style>
+</head>
+
+<body class="font-sans">
+
+<!-- HEADER -->
+<div class="bg-white p-4 text-center text-2xl font-bold text-orange-600 shadow">
+🍎 NutriNest
+</div>
+
+<div class="p-4 space-y-5">
+
+<!-- SCORE -->
+<div class="bg-white p-4 rounded shadow text-center">
+<h2 class="font-bold">Nutrition Score</h2>
+<p id="score" class="text-3xl text-green-600 font-bold">75</p>
+</div>
+
+<!-- PROFILE -->
+<div class="bg-white p-4 rounded shadow">
+<h3 class="font-bold mb-2">👶 Child Profile</h3>
+
+<input id="age" class="border p-2 w-full mb-2" placeholder="Age">
+
+<select id="goal" class="border p-2 w-full mb-2">
+<option value="balanced">Balanced</option>
+<option value="weight">Weight Gain</option>
+<option value="lowSugar">Low Sugar</option>
+</select>
+
+<button onclick="saveProfile()" class="bg-blue-500 text-white px-3 py-2 rounded w-full">
+Save Profile
+</button>
+
+<p id="profileMsg" class="text-green-600 mt-2"></p>
+</div>
+
+<!-- FOOD -->
+<div class="bg-white p-4 rounded shadow">
+<h3 class="font-bold mb-2">🍽 Food Analyzer</h3>
+<input id="foodInput" class="border p-2 w-full mb-2" placeholder="Enter food">
+<button onclick="analyzeFood()" class="bg-orange-500 text-white px-3 py-2 rounded w-full">Analyze</button>
+<p id="result" class="mt-2 font-bold"></p>
+</div>
+
+<!-- MEAL -->
+<div class="bg-white p-4 rounded shadow">
+<h3 class="font-bold mb-2">📅 Smart Meal Plan</h3>
+<button onclick="generateMealPlan()" class="bg-green-500 text-white px-3 py-2 rounded w-full mb-2">
+Generate Plan
+</button>
+<div id="mealPlan"></div>
+</div>
+
+<!-- REWARDS -->
+<div class="bg-white p-4 rounded shadow">
+<h3 class="font-bold mb-2">🎮 Rewards</h3>
+<p>⭐ Points: <span id="points">0</span></p>
+<div id="coupons"></div>
+<p id="rewardMsg" class="text-green-600"></p>
+</div>
+
+</div>
+
+<script>
+let score = 75;
+let points = Number(localStorage.getItem("points")) || 0;
+document.getElementById("points").innerText = points;
+
+// PROFILE
+function saveProfile(){
+  let age = document.getElementById("age").value;
+  let goal = document.getElementById("goal").value;
+  localStorage.setItem("profile", JSON.stringify({age, goal}));
+  document.getElementById("profileMsg").innerText = "Saved ✅";
+}
+
+// FOOD ANALYZER
+const junk = ["pizza","burger","chips","cola","cake","chocolate"];
+const healthy = ["apple","banana","milk","egg","dal","roti","rice"];
+
+function analyzeFood(){
+  let food = document.getElementById("foodInput").value.toLowerCase();
+
+  if(junk.includes(food)){
+    score -= 10;
+    document.getElementById("result").innerText="❌ Junk Food";
+  } 
+  else if(healthy.includes(food)){
+    score += 5;
+    points += 10;
+    localStorage.setItem("points",points);
+    document.getElementById("result").innerText="✅ Healthy (+10⭐)";
+  } 
+  else {
+    document.getElementById("result").innerText="🤔 Unknown";
+  }
+
+  document.getElementById("score").innerText=score;
+  document.getElementById("points").innerText=points;
+  renderCoupons();
+}
+
+// SMART MEAL PLAN
+function generateMealPlan(){
+  let profile = JSON.parse(localStorage.getItem("profile")) || {};
+  let goal = profile.goal || "balanced";
+
+  let meals = {
+    balanced:["🍛 Rice + Dal","🥞 Dosa","🥣 Oats","🫓 Roti + Paneer"],
+    weight:["🍗 Chicken Rice","🥛 Milkshake","🥞 Paratha"],
+    lowSugar:["🥗 Salad","🍲 Veg Soup","🥒 Cucumber"]
+  };
+
+  let plan = meals[goal];
+
+  let div = document.getElementById("mealPlan");
+  div.innerHTML="";
+
+  ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].forEach(day=>{
+    let item = document.createElement("p");
+    item.innerText = day + " → " + plan[Math.floor(Math.random()*plan.length)];
+    div.appendChild(item);
+  });
+}
+
+// COUPONS
+let coupons = [
+{id:1,name:"🥗 10% Discount",cost:50,used:false},
+{id:2,name:"🍎 Free Fruit",cost:80,used:false}
+];
+
+function renderCoupons(){
+  let box=document.getElementById("coupons");
+  box.innerHTML="";
+
+  coupons.forEach(c=>{
+    let btn=document.createElement("button");
+    btn.innerText = c.used ? "Used" : (points>=c.cost ? "Redeem" : "Locked");
+
+    btn.className="ml-2 px-2 py-1 rounded text-white " + 
+      (c.used ? "bg-gray-400" : (points>=c.cost ? "bg-green-500" : "bg-gray-300"));
+
+    btn.onclick=()=>redeem(c.id);
+
+    let row=document.createElement("div");
+    row.innerText=c.name + " ("+c.cost+"⭐)";
+    row.appendChild(btn);
+
+    box.appendChild(row);
+  });
+}
+
+function redeem(id){
+  let c=coupons.find(x=>x.id===id);
+
+  if(points < c.cost){
+    alert("Not enough points");
+    return;
+  }
+
+  points -= c.cost;
+  c.used = true;
+
+  localStorage.setItem("points",points);
+  document.getElementById("points").innerText=points;
+  document.getElementById("rewardMsg").innerText="🎉 Coupon Redeemed!";
+  renderCoupons();
+}
+
+renderCoupons();
+</script>
+
+</body>
+</html>

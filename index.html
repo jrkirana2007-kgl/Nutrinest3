@@ -174,7 +174,7 @@ function analyzeFood(){
     addPoints(10);
   }
   else if(m>0){
-    msg="⚖ Moderate Meal";
+    msg="⚖️ Moderate Meal";
     suggestion="👉 Improve balance.";
     emoji="👍";
     addPoints(2);
@@ -187,7 +187,7 @@ function analyzeFood(){
 
   result.innerHTML = `
     ${emoji} ${msg}<br>
-    🍟 ${j} | 🥗 ${h} | ⚖ ${m}<br>
+    🍟 ${j} | 🥗 ${h} | ⚖️ ${m}<br>
     ${suggestion}
   `;
 
@@ -281,7 +281,7 @@ function generateMealPlan(){
     card.innerHTML=`
       <b>${day}</b><br>
       🌅 ${random(plan)}<br>
-      ☀ ${random(plan)}<br>
+      ☀️ ${random(plan)}<br>
       🌙 ${random(plan)}<br>
       🍎 ${random(plan)}
     `;
